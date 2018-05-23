@@ -268,9 +268,9 @@ void Alison_Neuron::derivs(double *y, double *dydt) {
 	IA = input(0) * (V - E_K); 
     }
     else{
-	IA = G_A * (V - E_K)/cm;
+	IA = G_A * (V - E_K);
     }	
-    dV = -(G_Na*(V-E_Na) + G_K*(V-E_K) + G_Ks*(V-E_K) + G_L*(V-E_L))/cm + Iapp -IA + input(1);
+    dV = -(G_Na*(V-E_Na) + G_K*(V-E_K) + G_Ks*(V-E_K) + G_L*(V-E_L) + IA - Iapp - input(1))/cm;
     dm = (m_inf(V) - m) / tau_m(V);
     dh = (h_inf(V) - h) / tau_h(V);
     dn = (n_inf(V) - n) / tau_n(V);
