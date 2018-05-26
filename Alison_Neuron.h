@@ -30,7 +30,6 @@ class Alison_Neuron : public DefaultGUIModel
         double G_Na_max;
         double E_Na;
         double G_K_max;
-        double G_Ks_max;
         double E_K;
         double G_L;
         double E_L;
@@ -38,7 +37,11 @@ class Alison_Neuron : public DefaultGUIModel
         double Iapp;
         double rate;
         double taua;
-	double taub1;
+	double taub;
+	double taun0;
+	double taun1;
+	double tauh0;
+	double tauh1;
         double IA;
         double systime;
         long long count;

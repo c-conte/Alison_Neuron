@@ -3,75 +3,70 @@
 
 // Model Functions
 
+
+//GAMMAF(VV,theta,sigma)=1.0/(1.0+exp(-(VV-theta)/sigma))
 static inline double
 m_inf(double V)
 {
-    //1.0/(1.0+exp(-(VV-thetam)/sigmam))
-    return 1.0/(1.0+exp(-(V-(-38.0))/5.0));
+    //minf(V)=GAMMAF(V,thetam,sigmam)
+    //1.0/(1.0+exp(-(V-thetam)/sigmam))
+    return 1.0/(1.0+exp(-(V-(-40.0))/5.0));
 }
 
 static inline double
 h_inf(double V)
 {
-    //1.0/(1.0+exp(-(VV-thetah)/sigmah))
+    //hinf(V)=GAMMAF(V,thetah,sigmah)
+    //1.0/(1.0+exp(-(V-thetah)/sigmah))
     return 1.0/(1.0+exp(-(V-(-50.0))/-3.0));
 }
 
 static inline double
 n_inf(double V)
 {
-    //1.0/(1.0+exp(-(VV-thetan)/sigman))
+    //ninf(V)=GAMMAF(V,thetan,sigman)
+    //1.0/(1.0+exp(-(V-thetan)/sigman))
     return 1.0/(1.0+exp(-(V - (-40.0))/5.0));
 }
 
 static inline double
 tau_m(double V)
 {
-    //0.05+0.5*(GAMMAF(V,thetatma,sigmatma)*GAMMAF(V,thetatmb,sigmatmb))
+    //taum(V)=0.05+0.5*(GAMMAF(V,thetatma,sigmatma)*GAMMAF(V,thetatmb,sigmatmb))
+    //taum(V)=0.05+0.5*((1.0/(1.0+exp(-(V-thetatma)/sigmatma))*1.0/(1.0+exp(-(V-thetatmb)/sigmatmb)))
     return 0.05+0.5*((1.0/(1.0+exp(-(V - (-20.0))/-10.0)))*(1.0/(1.0+exp(-(V - (-60.0))/3.0))));
 }
 
 static inline double
-tau_h(double V)
+tau_h(double V, double tauh0, double tauh1)
 {
-    //1+8*GAMMAF(V,thetath,sigmath)
-    return 1.0+8.0*(1.0/(1.0+exp(-(V - (-45.0))/-3.0)));
+    //tauh(V)=tauh0+(tauh1-tauh0)*GAMMAF(V,thetath,sigmath)
+    //tauh(V)=tauh0+(tauh1-tauh0)*(1.0/(1.0+exp(-(V-thetath)/sigmath)))
+    return tauh0+(tauh1-tauh0)*(1.0/(1.0+exp(-(V - (-45.0))/-3.0)));
 }
 
 static inline double
-tau_n(double V)
+tau_n(double V, double taun0, double taun1)
 {
-    //1.2+8*(GAMMAF(V,thetatna,sigmatna)*GAMMAF(V,thetatnb,sigmatnb))
-    return 1.2+8.0*((1.0/(1.0+exp(-(V - (-50.0))/-10.0)))*(1.0/(1.0+exp(-(V - (-70.0))/10.0))));
-}
-
-static inline double
-tau_ns(double V)
-{
-    //1.2+200*(GAMMAF(V,thetatna,sigmatna)*GAMMAF(V,thetatnb,sigmatnb))
-    return 1.2+200*((1.0/(1.0+exp(-(V - (-50.0))/-10.0)))*(1.0/(1.0+exp(-(V - (-70.0))/10.0))));
+    //taun(V)=taun0+(taun1-taun0)*GAMMAF(V,thetatna,sigmatna)
+    //taun(V)=taun0+(taun1-taun0)*1.0/(1.0+exp(-(V-thetatna)/sigmatna))
+    return taun0+(taun1-taun0)*(1.0/(1.0+exp(-(V - (-50.0))/-10.0)));
 }
 
 static inline double
 a_inf(double V)
 {
     //ainf(v)=1/(1+exp(-(v-thetaa)/sigmaa))
-    return 1.0/(1.0+exp(-(V - (-50.0))/20.0));
+    return 1.0/(1.0+exp(-(V - (-30.0))/20.0));
 }
 
 static inline double
 b_inf(double V)
 {
-    //abinf(v)=1/(1+exp(-(v-thetab)/sigmab))
+    //binf(v)=1/(1+exp(-(v-thetab)/sigmab))
     return 1.0/(1.0+exp(-(V - (-70.0))/-6.0));
 }
 
-static inline double
-tau_b(double V,double taub1)
-{
-    //taub(v)=taub0 + (taub1-taub0)/(1+exp(-(v-tb)/sb))
-    return 10 + (taub1-10)/(1.0+exp(-(V-(-80))/10));
-}
 
 extern "C" Plugin::Object *
 createRTXIPlugin(void)
@@ -96,9 +91,6 @@ static DefaultGUIModel::variable_t vars[] =
         DefaultGUIModel::PARAMETER | DefaultGUIModel::DOUBLE, },
     { "G_K_max (uS)",
         "Maximum delayed rectifier conductance density",
-        DefaultGUIModel::PARAMETER | DefaultGUIModel::DOUBLE, },
-    { "G_Ks_max (uS)",
-        "Maximum delayed rectifier conductance density",
         DefaultGUIModel::PARAMETER | DefaultGUIModel::DOUBLE, },        
     { "E_K (mV)", "K+ reversal potential", DefaultGUIModel::PARAMETER
         | DefaultGUIModel::DOUBLE, },
@@ -113,12 +105,19 @@ static DefaultGUIModel::variable_t vars[] =
         | DefaultGUIModel::UINTEGER, },
     { "taua", "",
         DefaultGUIModel::PARAMETER | DefaultGUIModel::DOUBLE, },
-    { "taub1", "",
+    { "taub", "",
+        DefaultGUIModel::PARAMETER | DefaultGUIModel::DOUBLE, },
+    { "taun0", "",
+        DefaultGUIModel::PARAMETER | DefaultGUIModel::DOUBLE, },
+    { "taun1", "",
+        DefaultGUIModel::PARAMETER | DefaultGUIModel::DOUBLE, },
+    { "tauh0", "",
+        DefaultGUIModel::PARAMETER | DefaultGUIModel::DOUBLE, },
+    { "tauh1", "",
         DefaultGUIModel::PARAMETER | DefaultGUIModel::DOUBLE, },
     { "m", "", DefaultGUIModel::STATE, },
     { "h", "", DefaultGUIModel::STATE, },
     { "n", "", DefaultGUIModel::STATE, },
-    { "ns", "", DefaultGUIModel::STATE, },
     { "a", "", DefaultGUIModel::STATE, },
     { "b", "", DefaultGUIModel::STATE, },
     { "IA", "", DefaultGUIModel::STATE, },
@@ -178,7 +177,6 @@ void Alison_Neuron::update(DefaultGUIModel::update_flags_t flag) {
             setParameter("G_Na_max (uS)", QString::number(G_Na_max)); 
             setParameter("E_Na (mV)", QString::number(E_Na)); 
             setParameter("G_K_max (uS)", QString::number(G_K_max)); 
-            setParameter("G_Ks_max (uS)", QString::number(G_Ks_max)); 
             setParameter("E_K (mV)", QString::number(E_K)); 
             setParameter("G_L (uS)", QString::number(G_L)); 
             setParameter("E_L (mV)", QString::number(E_L)); 
@@ -186,11 +184,14 @@ void Alison_Neuron::update(DefaultGUIModel::update_flags_t flag) {
             setParameter("Iapp (nA)", QString::number(Iapp)); 
             setParameter("Rate (Hz)", rate);
             setParameter("taua", QString::number(taua));
-	        setParameter("taub1", QString::number(taub1));
+	    setParameter("taub", QString::number(taub));
+	    setParameter("taun0", QString::number(taun0));
+	    setParameter("taun1", QString::number(taun1));
+            setParameter("tauh0", QString::number(tauh0));
+            setParameter("tauh1", QString::number(tauh1));
             setState("m", m);
             setState("h", h);
             setState("n", n);
-            setState("ns", ns);
             setState("b", b);
             setState("a", a);
             setState("IA",IA);
@@ -203,7 +204,6 @@ void Alison_Neuron::update(DefaultGUIModel::update_flags_t flag) {
             G_Na_max = getParameter("G_Na_max (uS)").toDouble();
             E_Na = getParameter("E_Na (mV)").toDouble();
             G_K_max = getParameter("G_K_max (uS)").toDouble();
-            G_Ks_max = getParameter("G_Ks_max (uS)").toDouble();
             E_K = getParameter("E_K (mV)").toDouble();
             G_L = getParameter("G_L (uS)").toDouble();
             E_L = getParameter("E_L (mV)").toDouble();
@@ -211,7 +211,11 @@ void Alison_Neuron::update(DefaultGUIModel::update_flags_t flag) {
             Iapp = getParameter("Iapp (nA)").toDouble(); 
             rate = getParameter("Rate (Hz)").toDouble();
             taua = getParameter("taua").toDouble();
-            taub1 = getParameter("taub1").toDouble();
+            taub = getParameter("taub").toDouble();
+            taun0 = getParameter("taun0").toDouble();
+            taun1 = getParameter("taun1").toDouble();
+            tauh0 = getParameter("tauh0").toDouble();
+            tauh1 = getParameter("tauh1").toDouble();
             steps = static_cast<int> (ceil(period * rate));
 
             break;
@@ -228,24 +232,26 @@ void Alison_Neuron::update(DefaultGUIModel::update_flags_t flag) {
 
 void Alison_Neuron::initParameters() {
     V0 = -55.038; // mV
-    G_Na_max = 0.5;
-    G_K_max = 0.02;
-    G_Ks_max = 0.0;
-    G_L = 0.001;
-    G_A_max = 0.1;
+    G_Na_max = 0.24;
+    G_K_max = 0.011;
+    G_L = 0.0018;
+    G_A_max = 0.3;
     E_Na = 50.0; // mV
-    E_K = -90.0;
+    E_K = -100.0;
     E_L = -59.5;
     cm = 0.0187;
     Iapp = 0.0; // 1 Hz spiking
     rate = 400;
     taua = 2.0;
-    taub1 = 200.0;
+    taub = 200.0;
+    taun0 = 1.8;
+    taun1 = 138;
+    tauh0 = 1.5;
+    tauh1 = 135;
     V = V0;
     m = 0.00001;
     h = 0.8522;
     n = 0.000208;
-    ns = 0.0;
     a = 0.0;
     b = 0.0;
     count = 0;
@@ -270,11 +276,11 @@ void Alison_Neuron::derivs(double *y, double *dydt) {
     else{
 	IA = G_A * (V - E_K);
     }	
-    dV = -(G_Na*(V-E_Na) + G_K*(V-E_K) + G_Ks*(V-E_K) + G_L*(V-E_L) + IA - Iapp - input(1))/cm;
+
+    dV = (-(G_Na*(V-E_Na) + G_K*(V-E_K) + G_L*(V-E_L) + IA) + (Iapp + input(1)))/cm;
     dm = (m_inf(V) - m) / tau_m(V);
-    dh = (h_inf(V) - h) / tau_h(V);
-    dn = (n_inf(V) - n) / tau_n(V);
-    dns = (n_inf(V)-ns) / tau_ns(V);
-    db = (b_inf(V) - b) / tau_b(V,taub1);
+    dh = (h_inf(V) - h) / tau_h(V,tauh0,tauh1);
+    dn = (n_inf(V) - n) / tau_n(V,taun0,taun1);
+    db = (b_inf(V) - b) / taub;
     da = (a_inf(V) - a) / taua;
 }
